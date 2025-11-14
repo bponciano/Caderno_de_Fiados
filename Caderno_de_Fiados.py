@@ -1,107 +1,88 @@
 import json
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
 clientes = {}
 
 def registrar_cliente(nome_cliente):
-
     nome_chave = nome_cliente.lower()
-
     if nome_chave in clientes:
-        print(f"Erro: Cliente '{nome_cliente}' já está cadastrado.")
+        return False
     else:
         clientes[nome_chave] = {
             "nome_exibicao": nome_cliente,
             "saldo_devedor": 0.0,
             "transacoes": []
         }
-        print(f"Cliente '{nome_cliente}' registrado com sucesso!")
+        salvar_dados()
+        return True
 
-    salvar_dados()
-
-def registrar_compra(cliente,data,valor):
-
+def registrar_compra(cliente, data, valor):
     nome_chave = cliente.lower()
-
     if nome_chave in clientes:
-
-        nova_transacao = {"tipo":"compra","data":data,"valor":valor}
-
+        nova_transacao = {"tipo": "compra", "data": data, "valor": valor}
         clientes[nome_chave]['transacoes'].append(nova_transacao)
         clientes[nome_chave]["saldo_devedor"] += valor
-
-        print(f"Compra de R$ {valor} registrada para {clientes[nome_chave]['nome_exibicao']}.")
-        print(f"Novo saldo devedor: R$ {clientes[nome_chave]['saldo_devedor']:.2f}")
-
+        salvar_dados()
+        return True
     else:
-        print(f"Erro: '{cliente}' não encontrado!")
+        return False
 
-    salvar_dados()
 
-def registrar_pagamento(cliente,data,valor):
-
+def registrar_pagamento(cliente, data, valor):
     nome_chave = cliente.lower()
-
     if nome_chave in clientes:
-
-        nova_transacao = {"tipo":"pagamento","data":data,"valor":valor}
-
+        nova_transacao = {"tipo": "pagamento", "data": data, "valor": valor}
         clientes[nome_chave]['transacoes'].append(nova_transacao)
         clientes[nome_chave]["saldo_devedor"] -= valor
-
-        print(f"Pagamento de R$ {valor} registrado para {clientes[nome_chave]['nome_exibicao']}.")
-        print(f"Novo saldo devedor: R$ {clientes[nome_chave]['saldo_devedor']:.2f}")
-
+        salvar_dados()
+        return True
     else:
-        print(f"Erro: '{cliente}' não encontrado!")
-
-    salvar_dados()
+        return False
 
 def consultar_cliente(cliente):
     nome_chave = cliente.lower()
-
     if nome_chave in clientes:
         dados_cliente = clientes[nome_chave]
-
-        print(f"--- Extrato do Cliente: {dados_cliente['nome_exibicao']} ---")
-        print(f"Saldo Devedor Atual: R$ {dados_cliente['saldo_devedor']:.2f}")
-        print("\n--- Histórico de Transações ---")
+        
+        extrato = f"--- Extrato do Cliente: {dados_cliente['nome_exibicao']} ---\n"
+        extrato += f"Saldo Devedor Atual: R$ {dados_cliente['saldo_devedor']:.2f}\n"
+        extrato += "\n--- Histórico de Transações ---\n"
 
         if not dados_cliente['transacoes']:
-            print("Nenhuma transação registrada.")
+            extrato += "Nenhuma transação registrada."
         else:
             for transacao in dados_cliente['transacoes']:
                 valor_str = f"R$ {transacao['valor']:.2f}"
                 tipo_str = transacao['tipo'].capitalize()
-
-                print(f"  {transacao['data']} | {tipo_str:<10} | {valor_str}")
-
+                extrato += f"  {transacao['data']} | {tipo_str:<10} | {valor_str}\n"
+        
+        return extrato
     else:
-        print(f"Erro: Cliente '{cliente}' não encontrado!")
+        return None
 
 def apagar_cliente(cliente):
     nome_chave = cliente.lower()
-
     if nome_chave in clientes:
         del clientes[nome_chave]
-        print(f"Cliente '{cliente}' apagado com sucesso!")
+        salvar_dados()
+        return True
     else:
-        print(f"Cliente '{cliente}' não encontrado!")
-
-    salvar_dados()
+        return False
 
 def mostrar_saldo_total():
     total_devido = 0
-    for cliente in clientes:
-        total_devido += clientes[cliente]['saldo_devedor']
-    print(f"Saldo total devido: {total_devido:.2f}")
+    for dados in clientes.values():
+        total_devido += dados['saldo_devedor']
+    return total_devido
 
 def listar_clientes():
-
     if not clientes:
-        print('Nenhum cliente registrado com sucesso!')
-        return
-
+        return "Nenhum cliente registrado."
+    
+    lista_texto = "--- Lista de Clientes e Saldos ---\n"
     for dados_cliente in clientes.values():
-        print(f"{dados_cliente['nome_exibicao']}: R$ {dados_cliente['saldo_devedor']:.2f}")
+        lista_texto += f"{dados_cliente['nome_exibicao']}: R$ {dados_cliente['saldo_devedor']:.2f}\n"
+    return lista_texto
 
 def carregar_dados():
     try:
@@ -119,62 +100,50 @@ def salvar_dados():
 
 clientes = carregar_dados()
 
-def main():
-    while True:
-        print("\n--- CADERNO DE FIADOS (MENU) ---")
-        print("1. Registrar Novo Cliente")
-        print("2. Registrar Compra")
-        print("3. Registrar Pagamento")
-        print("4. Consultar Cliente (Extrato)")
-        print("5. Listar Clientes (Nome e Saldo)")
-        print("6. Apagar Cliente")
-        print("7. Ver Saldo Devedor Total")
-        print("8. Sair do Programa")
-        print("---------------------------------")
-        escolha = (input("Escolha uma das opções: "))
-        if escolha == '1':
-            cliente = input("Informe o nome do cliente: ")
-            registrar_cliente(cliente)
+root = tk.Tk()
+root.title("Caderno de Fiados v1.0")
+root.title("Caderno de Fiados v1.0")
 
-        elif escolha == '2':
-            cliente = input("Informe o nome do cliente: ")
-            data = input("Informe o data de compra: ")
-            valor = input("Informe o valor do compra: ")
-            try:
-                valor = float(valor)
-                registrar_compra(cliente, data, valor)
-            except ValueError:
-                print("Erro: Valor inválido. Deve ser um número (ex: 50.50).")
+frame = ttk.Frame(root, padding="10")
 
-        elif escolha == '3':
-            cliente = input("Informe o nome do cliente: ")
-            data = input("Informe o data de pagamento: ")
-            valor = input("Informe o valor do pagamento: ")
+nome_label = ttk.Label(frame, text="Nome do Cliente:")
+nome_entry = ttk.Entry(frame, width=40)
 
-            try:
-                valor = float(valor)
-                registrar_pagamento(cliente, data, valor)
-            except ValueError:
-                print("Erro: Valor inválido. Deve ser um número (ex: 50.50).")
+data_label = ttk.Label(frame, text="Data (DD-MM-AAAA):")
+data_entry = ttk.Entry(frame, width=40)
 
-        elif escolha == '4':
-            cliente = input("Informe o nome do cliente: ")
-            consultar_cliente(cliente)
+valor_label = ttk.Label(frame, text="Valor (R$):")
+valor_entry = ttk.Entry(frame, width=40)
 
-        elif escolha == '5':
-            listar_clientes()
+btn_comprar = ttk.Button(frame, text="Registrar Compra")
+btn_pagar = ttk.Button(frame, text="Registrar Pagamento")
+btn_registrar = ttk.Button(frame, text="Registrar Novo Cliente")
+btn_consultar = ttk.Button(frame, text="Consultar Extrato")
+btn_listar = ttk.Button(frame, text="Listar Clientes")
+btn_total = ttk.Button(frame, text="Ver Saldo Total")
+btn_apagar = ttk.Button(frame, text="Apagar Cliente")
 
-        elif escolha == '6':
-            cliente = input("Informe o nome do cliente: ")
-            apagar_cliente(cliente)
+frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-        elif escolha == '7':
-            mostrar_saldo_total()
+nome_label.grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+nome_entry.grid(row=0, column=1, columnspan=2, sticky=(tk.W, tk.E), padx=5, pady=5)
 
-        elif escolha == '8':
-            break
+data_label.grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+data_entry.grid(row=1, column=1, columnspan=2, sticky=(tk.W, tk.E), padx=5, pady=5)
 
-        else:
-            print("Opção invalida. Tente novamente.")
+valor_label.grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+valor_entry.grid(row=2, column=1, columnspan=2, sticky=(tk.W, tk.E), padx=5, pady=5)
 
-main()
+btn_comprar.grid(row=3, column=1, sticky=(tk.W, tk.E), padx=5, pady=10)
+btn_pagar.grid(row=3, column=2, sticky=(tk.W, tk.E), padx=5, pady=10)
+
+ttk.Separator(frame, orient='horizontal').grid(row=4, column=0, columnspan=3, sticky='ew', pady=10)
+
+btn_registrar.grid(row=5, column=0, sticky=(tk.W, tk.E), padx=5, pady=5)
+btn_consultar.grid(row=5, column=1, sticky=(tk.W, tk.E), padx=5, pady=5)
+btn_listar.grid(row=5, column=2, sticky=(tk.W, tk.E), padx=5, pady=5)
+
+btn_apagar.grid(row=6, column=0, sticky=(tk.W, tk.E), padx=5, pady=5)
+btn_total.grid(row=6, column=1, sticky=(tk.W, tk.E), padx=5, pady=5)
+
+root.mainloop()
