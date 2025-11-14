@@ -58,3 +58,5 @@ python caderno.py
 
 
 No primeiro uso, o arquivo dados.json será criado automaticamente.
+
+Para testar o arquivo, deve ser baixado código e executado localmente.
