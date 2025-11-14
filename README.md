@@ -54,9 +54,6 @@ Abra o terminal na pasta onde o projeto está salvo.
 
 Rode o arquivo principal com o comando:
 
-python caderno.py
-
+python caderno_de_fiados.py
 
 No primeiro uso, o arquivo dados.json será criado automaticamente.
-
-Para testar o arquivo, deve ser baixado código e executado localmente.
